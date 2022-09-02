@@ -3679,7 +3679,7 @@ NetworkCookie = {
     domain: text,
     path: text,
     expires: uint,
-    size: unit,
+    size: uint,
     httpOnly: boolean,
     secure: boolean,
     session: boolean,
@@ -3798,7 +3798,7 @@ TODO: Body is actually bytes, not clear how to handle it as text
 NetworkResponseData = {
     url: text,
     protocol: text,
-    status: unit,
+    status: uint,
     statusText: text,
     headers: [ *NetworkHeader ],
     cookies: [ *NetworkCookie ],
