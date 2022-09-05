@@ -3781,14 +3781,30 @@ NetworkRequestData = {
     headers: [ *NetworkHeader ],
     cookies: [ *NetworkCookie ],
     ?body: text,
+    headersSize: uint,
     bodySize: uint,
-    headersSize: uint
 };
 </pre>
 
 The <code>RequestData</code> type represents an ongoing network request.
 
 TODO: Body is actually bytes, not clear how to handle it as text
+
+#### The network.ResponseContent type #### {#type-network-ResponseData}
+
+[=Remote end definition=] and [=local end definition=]
+
+<pre class="cddl local-cddl">
+NetworkResponseContent = {
+    size: unit / null
+};
+</pre>
+
+The <code>ResponseContent</code> type represents the decoded response to a
+network request.
+
+<! -- Not sure this is worthwhile if it only ends up with a single field, but it
+would be natural to add a field here if we have a way to return the body -->
 
 #### The network.ResponseData type #### {#type-network-ResponseData}
 
@@ -3803,10 +3819,15 @@ NetworkResponseData = {
     headers: [ *NetworkHeader ],
     cookies: [ *NetworkCookie ],
     mimeType: text,
+    headersSize: uint / null,
+    bodySize: uint / null,
     bytesReceived: uint,
+    content: NetworkResponseContent,
     timings: NetworkFetchTimingInfo,
 };
 </pre>
+
+The <code>RequestData</code> type represents the response to a netowrk request.
 
 ### Events ### {#module-network-events}
 
