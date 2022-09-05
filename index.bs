@@ -3790,7 +3790,7 @@ The <code>RequestData</code> type represents an ongoing network request.
 
 TODO: Body is actually bytes, not clear how to handle it as text
 
-#### The network.ResponseContent type #### {#type-network-ResponseData}
+#### The network.ResponseContent type #### {#type-network-ResponseContent}
 
 [=Remote end definition=] and [=local end definition=]
 
@@ -3803,7 +3803,7 @@ NetworkResponseContent = {
 The <code>ResponseContent</code> type represents the decoded response to a
 network request.
 
-<! -- Not sure this is worthwhile if it only ends up with a single field, but it
+<!-- Not sure this is worthwhile if it only ends up with a single field, but it
 would be natural to add a field here if we have a way to return the body -->
 
 #### The network.ResponseData type #### {#type-network-ResponseData}
