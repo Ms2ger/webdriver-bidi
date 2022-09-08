@@ -2738,7 +2738,6 @@ The <dfn export for=commands>browsingContext.captureScreenshot</dfn> command
 captures an image of the given browsing context, and returns it as a
 Base64-encoded string.
 
-
 <dl>
    <dt>Command Type</dt>
    <dd>
@@ -3687,7 +3686,7 @@ NetworkCookie = {
 };
 </pre>
 
-The <code>NetworkCookie</code> type represents a cookie.
+The <code>Cookie</code> type represents a cookie.
 
 If the cookie value can be represented as a UTF-8 encoded string, the
 <code>value</code> field will be present. Otherwise the <code>binaryValue</code>
@@ -3717,7 +3716,7 @@ NetworkFetchTimingInfo = {
 };
 </pre>
 
-The <code>NetworkFetchTimingInfo</code> type represents the time of each part of
+The <code>FetchTimingInfo</code> type represents the time of each part of
 the request, relative to <code>requestTime</code>.
 
 TODO: Add service worker fields
@@ -3734,12 +3733,40 @@ NetworkHeader = {
 };
 </pre>
 
-The <code>NetworkHeader</code> type represents a single request header.
+The <code>Header</code> type represents a single request header.
 
 If the header value can be represented as a UTF-8 encoded string, the
 <code>value</code> field will be present. Otherwise the <code>binaryValue</code>
 field will be present and consist of an array of integers representing the bytes
 of the header.
+
+<div algorithm>
+
+To <dfn>get a Header</dfn> given |name bytes| and |value bytes|:
+
+1. Let |name| be the result of [=UTF-8 decode=] with |name bytes|.
+
+   Assert: Since header names are constrained to be ASCII-only this cannot fail.
+
+1. Let |utf8 decoded value| be the result of [=UTF-8 decode without BOM or fail=]
+   with |value byes|.
+
+1. If |utf8 decoded value| is failure, then:
+
+    1. let |value| be null and |binary value| be a list.
+
+    1. For each |byte| in |value bytes|:
+
+      1. Append the [=value=] of |byte| to |binary value|.
+
+   Otherwise: let |value| be |utf8 decoded value| and let |binary value|
+   be null.
+
+1. Return a map matching the <code>NetworkHeader</code> production, with the
+   <code>name</code> field set to |string name|, the <code>value</code> field
+   set to |value| if it's not null, or omitted otherwise, and the
+   <code>binaryValue</code> field set to |binary value| if it's not null, or
+   omitted otherwise.
 
 #### The network.Initiator type #### {#type-network-Initiator}
 
@@ -3755,7 +3782,7 @@ NetworkInitiator = {
 };
 </pre>
 
-The <code>NetworkInitiatior</code> type represents the source of a network request.
+The <code>Initiatior</code> type represents the source of a network request.
 
 TODO: Align more closely with Fetch here?
 
@@ -3780,7 +3807,6 @@ NetworkRequestData = {
     method: text,
     headers: [ *NetworkHeader ],
     cookies: [ *NetworkCookie ],
-    ?body: text,
     headersSize: uint,
     bodySize: uint,
 };
@@ -3788,7 +3814,55 @@ NetworkRequestData = {
 
 The <code>RequestData</code> type represents an ongoing network request.
 
-TODO: Body is actually bytes, not clear how to handle it as text
+<div algorithm>
+
+To <dfn>get the request data</div> given |request|:
+
+1. Let |url| be the result of running the [=URL serializer=] with |request|'s
+   [=URL=].
+
+1. Let |method| be |request|'s [=method=].
+
+1. let |body size| be 0.
+
+1. Let |body| be request's [=body=].
+
+1. If |body| is a [=byte sequence=], let |body size| be the length of that
+   sequence. Otherwise if |body| is a [=body=] then let |body size| be that
+   body's [=length=] if it's not null, or 0 otherwise.
+
+   TODO: Should we handle the case where the body length is not yet known?
+
+1. Let |headers size| be the size in bytes of |request|'s [=headers list=] when
+   serialized as mandated by [=HTTP=].
+
+   Note: for protocols which allow header compression, this is the compressed
+   size of the headers, as sent over the network.
+
+1. Let |headers| be an empty list.
+
+1. Let |cookies| be an empty list.
+
+1. For each (|name|, |value|) in |request|'s [=headers list=]:
+
+  1. Append the result of [=get a Header=] with |name| and |value| to |headers|.
+
+  1. If |name| is a [=byte-case-insensitive=] match for "<code>Cookie</code>" then:
+
+    1. TODO: Add cookies
+
+    CDP puts all cookies in the cookie store for the destination URL into the
+    request object, and then marks the ones that were not actual sent with the
+    request with the reason they were blocked.
+
+    It's not clear if we want to do the same, or just include the cookies that
+    were actually sent.
+
+1. Return a map matching the <code>NetworkRequestData</code>
+   production, with the <code>url</code> field set to |url|, the
+   <code>method</code> field set to |method|, the <code>headers</code> field set
+   to |headers|, the <code>headersSize</code> field set to |headers size| and
+   the <code>bodySize</code> field set to |body size|.
 
 #### The network.ResponseContent type #### {#type-network-ResponseContent}
 
@@ -3852,6 +3926,10 @@ The <code>RequestData</code> type represents the response to a netowrk request.
       </pre>
    </dd>
 </dl>
+
+The [=remote end event trigger=] is the <dfn export>WebDriver BiDi before
+    request send</dfn> steps given |request|:
+
 
 #### The network.fetchError Event #### {#event-network-fetchError}
 
@@ -3920,6 +3998,12 @@ After the full response body is received.
 </dl>
 
 After the response headers are received but before the body.
+
+The [=remote end event trigger=] is the <dfn export>WebDriver BiDi before
+response started</dfn> steps given |request| and |response|:
+
+1. Let |request data| be the result of [=get the request data=] given |request|.
+
 
 ## The script Module ## {#module-script}
 
